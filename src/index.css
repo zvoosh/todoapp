@@ -6,3 +6,18 @@
   margin: 0px;
   padding: 0px;
 }
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: white;
+  border-radius: 3px;
+}
+body {
+  line-height: 1.6;
+}
