@@ -11,7 +11,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1F2937;
+  background: #1f2937;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -20,4 +20,7 @@
 }
 body {
   line-height: 1.6;
+}
+.ant-picker-input input {
+  font-size: 16px;
 }

@@ -224,15 +224,7 @@ function App() {
                   <div className="text-center text-2xl tracking-wide font-bold">
                     {editMode ? "Edit Task" : "Create Task"}
                   </div>
-                </Col>
-                <Col span={16} className="hidden">
-                  <Form.Item
-                    label={<span className="text-xl">ID:</span>}
-                    name="id"
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
+                </Col>  
                 <Col span={16}>
                   <Form.Item
                     label={<span className="text-xl">Title:</span>}
@@ -314,7 +306,10 @@ function App() {
                     label={<span className="text-xl mb-2">Dates:</span>}
                     name="dates"
                   >
-                    <RangePicker />
+                    <div className="flex">
+                      <DatePicker className="mr-5" />
+                      <DatePicker />
+                    </div>
                   </Form.Item>
                 </Col>
               </Row>
@@ -379,7 +374,7 @@ function App() {
               </div>
 
               {/* Form Container */}
-              <div className="bg-gray-800 flex justify-center items-center pb-5 md:pb-52 h-auto sm:h-full">
+              <div className="bg-gray-800 flex justify-center items-center pb-5 md:pb-52 h-auto sm:h-full pr-2">
                 <Form
                   form={form}
                   name="basic"
@@ -391,83 +386,105 @@ function App() {
                   autoComplete="off"
                 >
                   <Row gutter={[40, 40]} justify="center">
-                    {/* Input Fields */}
-                    {[
-                      { name: "title", label: "Title", component: <Input /> },
-                      {
-                        name: "description",
-                        label: "Description",
-                        component: (
-                          <TextArea
-                            minLength={3}
-                            maxLength={100}
-                            autoSize={{ minRows: 3, maxRows: 6 }}
-                          />
-                        ),
-                      },
-                      {
-                        label: "Type",
-                        component: (
-                          <div className="flex justify-between w-full">
-                            {["Personal", "Work", "Other"].map((option) => (
-                              <Checkbox
-                                key={option}
-                                checked={typeSelected === option}
-                                onChange={() => handleCheckboxChange(option)}
-                                className="scale-[1.5] origin-left text-xs text-white xl:text-black"
-                              >
-                                {option}
-                              </Checkbox>
-                            ))}
-                          </div>
-                        ),
-                      },
-                      {
-                        label: "Complete",
-                        component: (
-                          <Checkbox
-                            className="scale-[1.5] origin-left text-xs text-white xl:text-black"
-                            onChange={() => handleCheckboxChange("completed")}
-                            checked={checkboxes.completed}
-                          >
-                            Completed
-                          </Checkbox>
-                        ),
-                      },
-                      {
-                        label: "Priotarization",
-                        component: (
-                          <div className="flex justify-between w-full">
-                            {["High", "Medium", "Low"].map((option) => (
-                              <Checkbox
-                                key={option}
-                                checked={prioSelected === option}
-                                onChange={() => handleCheckboxChange(option)}
-                                className="scale-[1.5] origin-left text-xs text-white xl:text-black"
-                              >
-                                {option}
-                              </Checkbox>
-                            ))}
-                          </div>
-                        ),
-                      },
-                      {
-                        name: "dates",
-                        label: "Dates",
-                        component: <RangePicker />,
-                      },
-                    ].map(({ name, label, component }, idx) => (
-                      <Col xs={18} sm={18} md={16} key={idx}>
-                        <Form.Item
-                          name={name}
-                          label={
-                            <span className="text-xl text-white">{label}:</span>
-                          }
+                    <Col xs={18} sm={18} md={16}>
+                      <Form.Item
+                        name={"title"}
+                        label={
+                          <span className="text-xl text-white">Title:</span>
+                        }
+                      >
+                        <Input />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={18} sm={18} md={16}>
+                      <Form.Item
+                        name={"description"}
+                        label={
+                          <span className="text-xl text-white">
+                            Description:
+                          </span>
+                        }
+                      >
+                        <TextArea
+                          minLength={3}
+                          maxLength={100}
+                          autoSize={{ minRows: 3, maxRows: 6 }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={18} sm={18} md={16}>
+                      <Form.Item
+                        label={
+                          <span className="text-xl text-white">Type:</span>
+                        }
+                      >
+                        <div className="flex justify-between w-full">
+                          {["Personal", "Work", "Other"].map((option) => (
+                            <Checkbox
+                              key={option}
+                              checked={typeSelected === option}
+                              onChange={() => handleCheckboxChange(option)}
+                              className="scale-[1.5] origin-left text-xs text-white xl:text-black"
+                            >
+                              {option}
+                            </Checkbox>
+                          ))}
+                        </div>
+                      </Form.Item>
+                    </Col>
+                    <Col xs={18} sm={18} md={16}>
+                      <Form.Item
+                        label={
+                          <span className="text-xl text-white">Complete:</span>
+                        }
+                      >
+                        <Checkbox
+                          className="scale-[1.5] origin-left text-xs text-white xl:text-black"
+                          onChange={() => handleCheckboxChange("completed")}
+                          checked={checkboxes.completed}
                         >
-                          {component}
-                        </Form.Item>
-                      </Col>
-                    ))}
+                          Completed
+                        </Checkbox>
+                      </Form.Item>
+                    </Col>
+                    <Col xs={18} sm={18} md={16}>
+                      <Form.Item
+                        label={
+                          <span className="text-xl text-white">
+                            Priotarization:
+                          </span>
+                        }
+                      >
+                        <div className="flex justify-between w-full">
+                          {["High", "Medium", "Low"].map((option) => (
+                            <Checkbox
+                              key={option}
+                              checked={prioSelected === option}
+                              onChange={() => handleCheckboxChange(option)}
+                              className="scale-[1.5] origin-left text-xs text-white xl:text-black"
+                            >
+                              {option}
+                            </Checkbox>
+                          ))}
+                        </div>
+                      </Form.Item>
+                    </Col>
+                    <Col xs={18} sm={18} md={16}>
+                      <Form.Item
+                        label={
+                          <span className="text-xl text-white mb-2">
+                            Dates:
+                          </span>
+                        }
+                        name="dates"
+                      >
+                        <div className="flex">
+                          <DatePicker className="mr-5" />
+                          <DatePicker />
+                        </div>
+                      </Form.Item>
+                    </Col>
+                    {/* Input Fields */}
                   </Row>
 
                   {/* Action Buttons */}
