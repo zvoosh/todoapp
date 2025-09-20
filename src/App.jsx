@@ -631,7 +631,7 @@ function App() {
               {/* End of Search Filter */}
               {/* This can go into a separate component */}
               <div className="flex-1 overflow-y-auto mt-4 mb-10">
-                <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 pb-5 lg:pb-24 p-5 mt-5 ">
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 pb-5 lg:pb-24 p-5 mt-5 ">
                   {/* Task Cards */}
                   {filteredTaskCards.map((item, index) => (
                     <div
@@ -651,7 +651,6 @@ function App() {
                             <div className="text-white mr-5">
                               <EditOutlined
                                 onClick={() => {
-                                  console.log(item.id);
                                   form.setFieldsValue({
                                     title: item.title,
                                     description: item.description,
@@ -675,6 +674,21 @@ function App() {
                                   setPrioSelected(item.priotarization);
                                   setEditMode(true);
                                   setCreateTask((prev) => !prev);
+                                }}
+                              />
+                            </div>
+                            <div className="text-white mr-5">
+                              <CloseOutlined
+                                onClick={() => {
+                                  const parsed =
+                                    JSON.parse(localStorage.getItem("tasks")) ||
+                                    [];
+                                  const filtered = parsed.filter(
+                                    (value) => value.id !== item.id
+                                  );
+                                  const stringified = JSON.stringify(filtered);
+                                  localStorage.setItem("tasks", stringified);
+                                  setRerenderTrigger((prev) => !prev);
                                 }}
                               />
                             </div>
