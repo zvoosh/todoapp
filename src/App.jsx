@@ -8,6 +8,7 @@ import {
   Checkbox,
   DatePicker,
   Button,
+  Radio,
 } from "antd";
 import "./App.css";
 import { Content, Footer, Header } from "antd/es/layout/layout";
@@ -25,24 +26,16 @@ dayjs.extend(customParseFormat);
 
 const { Search, TextArea } = Input;
 
-const { RangePicker } = DatePicker;
-
 function App() {
   const [form] = Form.useForm();
+  const startDate = Form.useWatch("start", form);
   const [search, setSearch] = useState();
   const [filteredTaskCards, setFilteredTaskCards] = useState([]);
   const [rerenderTrigger, setRerenderTrigger] = useState(false);
   const [createTask, setCreateTask] = useState(false);
-  const [typeSelected, setTypeSelected] = useState("");
-  const [prioSelected, setPrioSelected] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [priority, setPriority] = useState("all");
   const [completed, setCompleted] = useState("all");
-  const [checkboxes, setCheckboxes] = useState({
-    type: null,
-    priotarization: null,
-    completed: null,
-  });
 
   useEffect(() => {
     setFilteredTaskCards(
@@ -51,10 +44,6 @@ function App() {
         : []
     );
   }, []);
-
-  useEffect(() => {
-    console.log("editMode", editMode);
-  }, [editMode]);
 
   useEffect(() => {
     const localData = localStorage.getItem("tasks")
@@ -69,8 +58,7 @@ function App() {
     const completedFiltered =
       completed !== "all"
         ? priorityFiltered.filter(
-            (item) =>
-              item.completed == (completed !== "completed" ? null : completed)
+            (item) => item.completed == (completed !== true ? null : completed)
           )
         : priorityFiltered;
 
@@ -83,30 +71,6 @@ function App() {
     setFilteredTaskCards(searchFiltered);
   }, [search, priority, completed, rerenderTrigger]);
 
-  const handleCheckboxChange = (value) => {
-    if (value == "Personal" || value == "Work" || value == "Other") {
-      setTypeSelected((prev) => (prev === value ? null : value));
-      setCheckboxes((prev) => ({
-        ...prev,
-        type: prev["type"] === value ? null : value,
-      }));
-    }
-
-    if (value == "High" || value == "Medium" || value == "Low") {
-      setPrioSelected((prev) => (prev === value ? null : value));
-      setCheckboxes((prev) => ({
-        ...prev,
-        priotarization: prev["priotarization"] === value ? null : value,
-      }));
-    }
-    if (value == "completed") {
-      setCheckboxes((prev) => ({
-        ...prev,
-        completed: prev["completed"] === value ? null : value,
-      }));
-    }
-  };
-
   const generateId = () => {
     return `id-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
   };
@@ -115,13 +79,11 @@ function App() {
     const previousState = JSON.parse(localStorage.getItem("tasks")) || [];
     const preparedValues = {
       ...values,
-      dates: [
-        dayjs(values.dates[0]).format("DD/MM/YYYY"),
-        dayjs(values.dates[1]).format("DD/MM/YYYY"),
-      ],
-      type: checkboxes.type,
-      priotarization: checkboxes.priotarization,
-      completed: checkboxes.completed,
+      start: dayjs(values.start).format("DD/MM/YYYY"),
+      end: dayjs(values.end).format("DD/MM/YYYY"),
+      completed: form.getFieldValue("completed")
+        ? form.getFieldValue("completed")
+        : false,
       id: generateId(),
     };
 
@@ -134,8 +96,6 @@ function App() {
     localStorage.setItem("tasks", stringified);
     setRerenderTrigger((prev) => !prev);
     setCreateTask(false);
-    setPrioSelected("");
-    setTypeSelected("");
     form.resetFields();
   };
 
@@ -143,33 +103,22 @@ function App() {
     const previousState = JSON.parse(localStorage.getItem("tasks")) || [];
     const preparedValues = {
       ...values,
-      dates: [
-        dayjs(values.dates[0]).format("DD/MM/YYYY"),
-        dayjs(values.dates[1]).format("DD/MM/YYYY"),
-      ],
-      type: checkboxes.type,
-      priotarization: checkboxes.priotarization,
-      completed: checkboxes.completed,
+      start: dayjs(values.start).format("DD/MM/YYYY"),
+      end: dayjs(values.end).format("DD/MM/YYYY"),
+      completed: form.getFieldValue("completed")
+        ? form.getFieldValue("completed")
+        : false,
     };
+    console.log(preparedValues);
     const newData = previousState.map((item) =>
       item.id === preparedValues.id ? preparedValues : item
     );
 
-    console.log(newData);
-
     const stringified = JSON.stringify(newData);
-
     localStorage.setItem("tasks", stringified);
     setRerenderTrigger((prev) => !prev);
     setCreateTask(false);
     setEditMode(false);
-    setCheckboxes({
-      type: null,
-      priotarization: null,
-      completed: null,
-    });
-    setPrioSelected("");
-    setTypeSelected("");
     form.resetFields();
   };
 
@@ -188,13 +137,16 @@ function App() {
     if (item.priotarization == "Low") {
       color = "bg-yellow-600 bg-opacity-90";
     }
+    if (item.completed) {
+      color = "bg-green-400";
+    }
     return color;
   };
 
   const handleCompletedBttn = (completed) => {
-    if (completed === "completed") {
+    if (completed === true) {
       return "bg-green-600";
-    } else if (completed === null) {
+    } else {
       return "bg-white";
     }
   };
@@ -224,61 +176,85 @@ function App() {
                   <div className="text-center text-2xl tracking-wide font-bold">
                     {editMode ? "Edit Task" : "Create Task"}
                   </div>
-                </Col>  
+                </Col>
                 <Col span={16}>
                   <Form.Item
-                    label={<span className="text-xl">Title:</span>}
-                    name="title"
+                    label={<span className="text-xl">ID:</span>}
+                    name="id"
+                    className="hidden"
                   >
                     <Input />
                   </Form.Item>
                 </Col>
                 <Col span={16}>
                   <Form.Item
+                    label={<span className="text-xl">Title:</span>}
+                    name="title"
+                    rules={[
+                      { required: true, message: "Please fill the title" },
+                    ]}
+                  >
+                    <Input placeholder="Market neccesseties"/>
+                  </Form.Item>
+                </Col>
+                <Col span={16}>
+                  <Form.Item
                     label={<span className="text-xl">Description:</span>}
                     name="description"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please fill the description",
+                      },
+                    ]}
                   >
                     <TextArea
                       minLength={3}
                       maxLength={100}
                       autoSize={{ minRows: 3, maxRows: 6 }}
+                      placeholder="Fish, apples, snaks, drinks"
                     />
                   </Form.Item>
                 </Col>
                 <Col span={16}>
                   <Form.Item
-                    label={<span className="text-xl mb-2">Type:</span>}
+                    label={<span className=" text-xl mb-2">Type:</span>}
+                    name="type"
+                    rules={[
+                      { required: true, message: "Please select a type" },
+                    ]}
                   >
-                    <div className="flex justify-between w-full">
-                      {["Personal", "Work", "Other"].map((option) => (
-                        <Checkbox
-                          key={option}
-                          checked={typeSelected === option}
-                          onChange={() => handleCheckboxChange(option)}
-                          className="scale-[1.5] transform origin-left text-xs"
-                        >
-                          {option}
-                        </Checkbox>
-                      ))}
-                    </div>
+                    <Radio.Group className="flex justify-between w-full">
+                      <Radio
+                        value="Personal"
+                        className="scale-[1.5] transform origin-left text-xs"
+                      >
+                        Personal
+                      </Radio>
+                      <Radio
+                        value="Work"
+                        className="scale-[1.5] transform origin-left text-xs"
+                      >
+                        Work
+                      </Radio>
+                      <Radio
+                        value="Other"
+                        className="scale-[1.5] transform origin-left text-xs"
+                      >
+                        Other
+                      </Radio>
+                    </Radio.Group>
                   </Form.Item>
                 </Col>
                 <Col span={16}>
                   <Form.Item
-                    label={<span className=" text-xl mb-2">Complete:</span>}
-                    className="flex justify-between"
+                    label={<span className="text-xl mb-2">Complete:</span>}
+                    name="completed"
+                    valuePropName="checked"
                   >
-                    <div>
-                      <Checkbox
-                        className="scale-[1.5] transform origin-left text-xs"
-                        onChange={() => handleCheckboxChange("completed")}
-                        checked={
-                          checkboxes.completed === "completed" ? true : false
-                        }
-                      >
-                        Completed
-                      </Checkbox>
-                    </div>
+                    <Checkbox className="scale-[1.5] transform origin-left text-xs">
+                      Completed
+                    </Checkbox>
                   </Form.Item>
                 </Col>
                 <Col span={16}>
@@ -286,31 +262,74 @@ function App() {
                     label={
                       <span className=" text-xl mb-2">Priotarization:</span>
                     }
+                    name={"priotarization"}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please select priotarization",
+                      },
+                    ]}
                   >
-                    <div className="flex justify-between w-full ">
-                      {["High", "Medium", "Low"].map((option) => (
-                        <Checkbox
-                          key={option}
-                          checked={prioSelected === option}
-                          onChange={() => handleCheckboxChange(option)}
-                          className="scale-[1.5] transform origin-left text-xs "
-                        >
-                          {option}
-                        </Checkbox>
-                      ))}
-                    </div>
+                    <Radio.Group className="flex justify-between w-full">
+                      <Radio
+                        value="High"
+                        className="scale-[1.5] transform origin-left text-xs"
+                      >
+                        High
+                      </Radio>
+                      <Radio
+                        value="Medium"
+                        className="scale-[1.5] transform origin-left text-xs"
+                      >
+                        Medium
+                      </Radio>
+                      <Radio
+                        value="Low"
+                        className="scale-[1.5] transform origin-left text-xs"
+                      >
+                        Low
+                      </Radio>
+                    </Radio.Group>
                   </Form.Item>
                 </Col>
                 <Col span={16}>
-                  <Form.Item
-                    label={<span className="text-xl mb-2">Dates:</span>}
-                    name="dates"
-                  >
-                    <div className="flex">
-                      <DatePicker className="mr-5" />
-                      <DatePicker />
-                    </div>
-                  </Form.Item>
+                  <Row>
+                    <Col span={12}>
+                      <Form.Item
+                        label={<span className="text-xl mb-2">Start:</span>}
+                        name="start"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please select a start date",
+                          },
+                        ]}
+                      >
+                        <DatePicker className="mr-5" />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label={<span className="text-xl mb-2">End:</span>}
+                        name="end"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please select an end date",
+                          },
+                        ]}
+                      >
+                        <DatePicker
+                          className="mr-5"
+                          disabledDate={(current) =>
+                            startDate
+                              ? current.isBefore(dayjs(startDate), "day")
+                              : false
+                          }
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
               <Row justify={"end"} className="mt-5">
@@ -319,13 +338,6 @@ function App() {
                   type="primary"
                   onClick={() => {
                     form.resetFields();
-                    setCheckboxes({
-                      type: null,
-                      priotarization: null,
-                      completed: null,
-                    });
-                    setPrioSelected("");
-                    setTypeSelected("");
                   }}
                 >
                   Reset fields
@@ -335,13 +347,6 @@ function App() {
                   className={editMode ? "mr-3" : "hidden"}
                   onClick={() => {
                     form.resetFields();
-                    setCheckboxes({
-                      type: null,
-                      priotarization: null,
-                      completed: null,
-                    });
-                    setPrioSelected("");
-                    setTypeSelected("");
                     setEditMode(false);
                   }}
                 >
@@ -392,6 +397,7 @@ function App() {
                         label={
                           <span className="text-xl text-white">Title:</span>
                         }
+                        required
                       >
                         <Input />
                       </Form.Item>
@@ -404,6 +410,7 @@ function App() {
                             Description:
                           </span>
                         }
+                        required
                       >
                         <TextArea
                           minLength={3}
@@ -412,77 +419,136 @@ function App() {
                         />
                       </Form.Item>
                     </Col>
-                    <Col xs={18} sm={18} md={16}>
+                    <Col span={18}>
                       <Form.Item
                         label={
-                          <span className="text-xl text-white">Type:</span>
+                          <span className="text-xl mb-2 text-white">Type:</span>
                         }
+                        name="type"
+                        rules={[
+                          { required: true, message: "Please select a type" },
+                        ]}
                       >
-                        <div className="flex justify-between w-full">
-                          {["Personal", "Work", "Other"].map((option) => (
-                            <Checkbox
-                              key={option}
-                              checked={typeSelected === option}
-                              onChange={() => handleCheckboxChange(option)}
-                              className="scale-[1.5] origin-left text-xs text-white xl:text-black"
-                            >
-                              {option}
-                            </Checkbox>
-                          ))}
-                        </div>
+                        <Radio.Group className="flex justify-between w-full">
+                          <Radio
+                            value="Personal"
+                            className="scale-[1.5] transform origin-left text-xs text-white"
+                          >
+                            Personal
+                          </Radio>
+                          <Radio
+                            value="Work"
+                            className="scale-[1.5] transform origin-left text-xs text-white"
+                          >
+                            Work
+                          </Radio>
+                          <Radio
+                            value="Other"
+                            className="scale-[1.5] transform origin-left text-xs text-white"
+                          >
+                            Other
+                          </Radio>
+                        </Radio.Group>
                       </Form.Item>
                     </Col>
-                    <Col xs={18} sm={18} md={16}>
+                    <Col span={18}>
                       <Form.Item
                         label={
-                          <span className="text-xl text-white">Complete:</span>
+                          <span className="text-white text-xl mb-2">
+                            Complete:
+                          </span>
                         }
+                        name="completed"
+                        valuePropName="checked"
                       >
-                        <Checkbox
-                          className="scale-[1.5] origin-left text-xs text-white xl:text-black"
-                          onChange={() => handleCheckboxChange("completed")}
-                          checked={checkboxes.completed}
-                        >
+                        <Checkbox className="scale-[1.5] transform origin-left text-xs text-white">
                           Completed
                         </Checkbox>
                       </Form.Item>
                     </Col>
-                    <Col xs={18} sm={18} md={16}>
+                    <Col span={18}>
                       <Form.Item
                         label={
-                          <span className="text-xl text-white">
+                          <span className="text-white text-xl mb-2">
                             Priotarization:
                           </span>
                         }
+                        name={"priotarization"}
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please select priotarization",
+                          },
+                        ]}
                       >
-                        <div className="flex justify-between w-full">
-                          {["High", "Medium", "Low"].map((option) => (
-                            <Checkbox
-                              key={option}
-                              checked={prioSelected === option}
-                              onChange={() => handleCheckboxChange(option)}
-                              className="scale-[1.5] origin-left text-xs text-white xl:text-black"
-                            >
-                              {option}
-                            </Checkbox>
-                          ))}
-                        </div>
+                        <Radio.Group className="flex justify-between w-full">
+                          <Radio
+                            value="High"
+                            className="scale-[1.5] transform origin-left text-xs text-white"
+                          >
+                            High
+                          </Radio>
+                          <Radio
+                            value="Medium"
+                            className="scale-[1.5] transform origin-left text-xs text-white"
+                          >
+                            Medium
+                          </Radio>
+                          <Radio
+                            value="Low"
+                            className="scale-[1.5] transform origin-left text-xs text-white"
+                          >
+                            Low
+                          </Radio>
+                        </Radio.Group>
                       </Form.Item>
                     </Col>
-                    <Col xs={18} sm={18} md={16}>
-                      <Form.Item
-                        label={
-                          <span className="text-xl text-white mb-2">
-                            Dates:
-                          </span>
-                        }
-                        name="dates"
-                      >
-                        <div className="flex">
-                          <DatePicker className="mr-5" />
-                          <DatePicker />
-                        </div>
-                      </Form.Item>
+                    <Col span={18}>
+                      <Row>
+                        <Col span={12}>
+                          <Form.Item
+                            label={
+                              <span className="text-white text-xl mb-2">
+                                Start:
+                              </span>
+                            }
+                            name="start"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select a start date",
+                              },
+                            ]}
+                          >
+                            <DatePicker className="mr-5" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item
+                            label={
+                              <span className="text-white text-xl mb-2">
+                                End:
+                              </span>
+                            }
+                            name="end"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please select an end date",
+                              },
+                            ]}
+                          >
+                            <DatePicker
+                              className="mr-5"
+                              disabledDate={(current) =>
+                                startDate
+                                  ? current.isBefore(dayjs(startDate), "day")
+                                  : false
+                              }
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
                     </Col>
                     {/* Input Fields */}
                   </Row>
@@ -494,13 +560,6 @@ function App() {
                       type="primary"
                       onClick={() => {
                         form.resetFields();
-                        setCheckboxes({
-                          type: null,
-                          priotarization: null,
-                          completed: null,
-                        });
-                        setPrioSelected("");
-                        setTypeSelected("");
                       }}
                     >
                       Reset fields
@@ -510,13 +569,6 @@ function App() {
                       className={editMode ? "mr-3" : "hidden"}
                       onClick={() => {
                         form.resetFields();
-                        setCheckboxes({
-                          type: null,
-                          priotarization: null,
-                          completed: null,
-                        });
-                        setPrioSelected("");
-                        setTypeSelected("");
                         setEditMode(false);
                       }}
                     >
@@ -664,7 +716,7 @@ function App() {
                           <p className="word-break w-4/5 pl-2 text-gray-200">
                             {item.title}
                           </p>
-                          <div className="w-1/5 flex justify-end">
+                          <div className="w-1/5 flex justify-end items-center">
                             <div className="text-white mr-5">
                               <EditOutlined
                                 onClick={() => {
@@ -675,20 +727,9 @@ function App() {
                                     completed: item.completed,
                                     priotarization: item.priotarization,
                                     id: item.id,
-                                    dates: item.dates
-                                      ? [
-                                          dayjs(item.dates[0], "DD/MM/YYYY"),
-                                          dayjs(item.dates[1], "DD/MM/YYYY"),
-                                        ]
-                                      : undefined,
+                                    start: dayjs(item.start, "DD/MM/YYYY"),
+                                    end: dayjs(item.end, "DD/MM/YYYY"),
                                   });
-                                  setCheckboxes({
-                                    completed: item.completed,
-                                    type: item.type,
-                                    priotarization: item.priotarization,
-                                  });
-                                  setTypeSelected(item.type);
-                                  setPrioSelected(item.priotarization);
                                   setEditMode(true);
                                   setCreateTask((prev) => !prev);
                                 }}
@@ -722,9 +763,9 @@ function App() {
                                     return {
                                       ...entity,
                                       completed:
-                                        entity.completed === "completed"
-                                          ? null
-                                          : "completed",
+                                        entity.completed === true
+                                          ? false
+                                          : true,
                                     };
                                   }
                                   return entity;
@@ -741,10 +782,10 @@ function App() {
                         <div className="p-1 px-2">
                           <div className="w-full font-bold flex justify-between">
                             <p>{item.type}</p>
-                            <p>{item.completed}</p>
+                            <p>{item.completed ? "completed" : ""}</p>
                           </div>
                           <div className="w-full">
-                            {item.dates[0]} - {item.dates[1]}
+                            {item.start} - {item.end}
                           </div>
                           <div className="break-words whitespace-normal w-full">
                             {item.description}
