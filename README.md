@@ -43,7 +43,7 @@ As far as deleting tasks goes the user can delete task by clicking on cancel ico
 
 ## Deployment
 
-The project is hosted on Hostinger and can be deployed with domain: https://todolist.dusanprogram.eu
+The project is hosted on Hostinger and can be viewed on domain: https://todolist.dusanprogram.eu
 
 ## Licence
 
